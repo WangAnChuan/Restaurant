@@ -21,7 +21,6 @@
 1.  创建一个名为 `restaurant_db` 的 MySQL 数据库。
 2.  执行初始化 SQL 脚本：
     *   `src/main/resources/sql/init.sql` (表结构与初始数据)
-    *   (可选) `src/main/resources/sql/add_image_url.sql` (修复图片链接)
 3.  **修改配置**：
     打开 `src/main/resources/application.yml`，修改数据库用户名和密码：
     ```yaml
