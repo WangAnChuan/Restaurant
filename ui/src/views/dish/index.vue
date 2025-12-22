@@ -133,8 +133,8 @@ const getDishEmoji = (name: string) => {
 
 const getImageUrl = (url: string) => {
   if (!url) return ''
-  if (url.startsWith('http')) return url
-  return 'http://localhost:9095' + url
+  // Vite proxy将自动转发 /uploads 请求到后端
+  return url
 }
 
 const beforeUpload = (file: File) => {
