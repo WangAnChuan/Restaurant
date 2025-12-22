@@ -54,7 +54,27 @@ mvn compile
 mvn spring-boot:run
 ```
 
-### 3. 确认 Lombok 依赖
+### 3. 前端依赖安装（必须）
+
+前端项目使用 Vue 3，需要先安装依赖才能运行：
+
+```bash
+# 进入前端目录
+cd ui
+
+# 安装所有依赖
+npm install
+
+# 如果 npm 速度慢，可以使用国内镜像
+npm install --registry=https://registry.npmmirror.com
+```
+
+**常见问题：**
+- 如果提示 `npm: command not found`，需要先安装 Node.js
+- 推荐 Node.js 版本：v18 或更高
+- 下载地址：https://nodejs.org/
+
+### 4. 确认 Lombok 依赖
 
 检查 `pom.xml` 中是否包含：
 ```xml
