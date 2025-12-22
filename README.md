@@ -52,3 +52,62 @@ npm run dev
 
 *   **默认管理员账号**: `admin` / `123456`
 *   **默认老板账号**: `boss` / `123456`
+
+## 如何同步仓库
+
+当远程仓库有新的更新时，团队成员需要同步最新代码：
+
+### 基本同步流程
+
+```bash
+# 1. 进入项目目录
+cd restaurant
+
+# 2. 拉取最新代码
+git pull
+
+# 3. 如果前端代码有更新，重启前端服务
+cd ui
+# 先停止当前运行的 npm run dev (Ctrl+C)
+npm run dev
+
+# 4. 如果后端代码有更新，重启后端服务
+# 回到项目根目录
+cd ..
+# 先停止当前运行的 mvn spring-boot:run (Ctrl+C)
+mvn spring-boot:run
+```
+
+### 处理本地有修改的情况
+
+如果你本地有未提交的修改：
+
+```bash
+# 方式1: 暂存本地修改
+git stash          # 暂存本地修改
+git pull           # 拉取远程更新
+git stash pop      # 恢复本地修改
+
+# 方式2: 先提交本地修改
+git add .
+git commit -m "your message"
+git pull
+```
+
+### 查看远程更新内容
+
+```bash
+# 查看远程有哪些更新
+git fetch origin
+git log HEAD..origin/master
+
+# 查看具体文件变化
+git diff HEAD origin/master
+```
+
+### 注意事项
+
+- **重启服务**: 修改配置文件（如 `pom.xml`、`vite.config.ts`）后必须重启相应服务
+- **依赖更新**: 如果 `pom.xml` 或 `package.json` 有变化，需要重新安装依赖
+  - 后端: `mvn clean install`
+  - 前端: `cd ui && npm install`
