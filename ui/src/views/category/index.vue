@@ -58,10 +58,10 @@ import { ref, onMounted } from 'vue'
 import { getCategoryList, addCategory, delCategory } from '@/api/account'
 import { ElMessage } from 'element-plus'
 
-const activeTab = ref('2')
+const activeTab = ref('1')
 const list = ref([])
 const newCat = ref('')
-const newType = ref(2)
+const newType = ref(1)
 
 const load = async () => {
   const res: any = await getCategoryList({ type: activeTab.value })
@@ -76,7 +76,9 @@ const handleAdd = async () => {
   await addCategory({ name: newCat.value, type: newType.value })
   ElMessage.success('添加成功')
   newCat.value = ''
-  if (newType.value.toString() === activeTab.value) load()
+  // 切换到新添加分类的tab页并刷新
+  activeTab.value = newType.value.toString()
+  load()
 }
 
 const handleDel = async (id: number) => {
