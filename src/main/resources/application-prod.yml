@@ -1,0 +1,47 @@
+server:
+  port: 9095
+
+logging:
+  file:
+    name: /var/log/restaurant/app.log
+  level:
+    root: INFO
+    com.restaurant: INFO
+
+spring:
+  application:
+    name: restaurant-backend
+  datasource:
+    url: jdbc:mysql://localhost:3306/restaurant_db?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&allowMultiQueries=true
+    username: root
+    password: 123456  # 请修改为实际密码
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.noop.NopLoggingImpl  # 生产环境关闭SQL日志
+  mapper-locations: classpath:mapper/*.xml
+  global-config:
+    db-config:
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+jwt:
+  secret: 5367566B59703373367639792F423F4528482B4D6251655468576D5A71347437  # 生产环境请更换为更安全的密钥
+  expiration: 86400000  # 24小时
+  header: Authorization
