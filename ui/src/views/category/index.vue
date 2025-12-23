@@ -22,7 +22,7 @@
     </el-card>
     
     <el-card class="list-card">
-      <el-tabs v-model="activeTab" @tab-click="load" class="custom-tabs">
+      <el-tabs v-model="activeTab" class="custom-tabs">
         <el-tab-pane name="1">
           <template #label>
             <span class="tab-label">💰 收入分类</span>
@@ -54,7 +54,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { getCategoryList, addCategory, delCategory } from '@/api/account'
 import { ElMessage } from 'element-plus'
 
@@ -63,8 +63,16 @@ const list = ref([])
 const newCat = ref('')
 const newType = ref(1)
 
+// 监听activeTab变化，同步更新newType并刷新列表
+watch(activeTab, (newVal) => {
+  newType.value = Number(newVal)
+  load()  // 切换tab时重新加载对应类型的分类列表
+})
+
+// 加载分类列表
+// 注意：activeTab是字符串类型('1' 或 '2')，需要转换为数字传给后端
 const load = async () => {
-  const res: any = await getCategoryList({ type: activeTab.value })
+  const res: any = await getCategoryList({ type: Number(activeTab.value) })
   list.value = res
 }
 

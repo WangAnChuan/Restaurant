@@ -31,7 +31,32 @@ request.interceptors.response.use(
         }
     },
     error => {
-        ElMessage.error(error.message || 'Network Error')
+        // 处理HTTP错误状态码
+        if (error.response) {
+            const status = error.response.status
+
+            if (status === 401) {
+                // 未授权：清除用户信息并跳转到登录页
+                ElMessage.error('登录已过期，请重新登录')
+                const userStore = useUserStore()
+                userStore.logout()
+
+                // 跳转到登录页
+                if (window.location.pathname !== '/login') {
+                    window.location.href = '/login'
+                }
+            } else if (status === 403) {
+                ElMessage.error('没有权限访问该资源')
+            } else if (status === 404) {
+                ElMessage.error('请求的资源不存在')
+            } else if (status === 500) {
+                ElMessage.error('服务器错误，请稍后重试')
+            } else {
+                ElMessage.error(error.response.data?.message || error.message || 'Network Error')
+            }
+        } else {
+            ElMessage.error(error.message || 'Network Error')
+        }
         return Promise.reject(error)
     }
 )

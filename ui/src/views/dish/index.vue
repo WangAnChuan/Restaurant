@@ -42,8 +42,8 @@
     <el-empty v-if="list.length === 0" description="暂无菜品数据" />
 
     <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑菜品' : '添加菜品'" width="520px" center>
-      <el-form :model="form" label-width="80px" size="large">
-        <el-form-item label="菜品名称">
+      <el-form ref="formRef" :model="form" :rules="formRules" label-width="80px" size="large">
+        <el-form-item label="菜品名称" prop="name">
           <el-input v-model="form.name" placeholder="请输入菜品名称" />
         </el-form-item>
         <el-form-item label="菜品图片">
@@ -74,7 +74,7 @@
             </el-button>
           </div>
         </el-form-item>
-        <el-form-item label="价格 (¥)">
+        <el-form-item label="价格 (¥)" prop="price">
           <el-input-number v-model="form.price" :precision="2" :min="0" style="width: 100%" />
         </el-form-item>
         <el-form-item label="配料">
@@ -116,7 +116,20 @@ const uploadHeaders = computed(() => ({
 const list = ref<Dish[]>([])
 const dialogVisible = ref(false)
 const isEdit = ref(false)
+const formRef = ref()
 const form = reactive({ id: 0, name: '', price: 0, ingredients: '', status: 1, imageUrl: '' })
+
+// 表单验证规则
+const formRules = {
+  name: [
+    { required: true, message: '请输入菜品名称', trigger: 'blur' },
+    { min: 1, max: 50, message: '菜品名称长度在1到50个字符', trigger: 'blur' }
+  ],
+  price: [
+    { required: true, message: '请输入价格', trigger: 'blur' },
+    { type: 'number', min: 0.01, message: '价格必须大于0', trigger: 'blur' }
+  ]
+}
 
 const dishEmojis: Record<string, string> = {
   '鱼': '🐟', '肉': '🍖', '鸡': '🍗', '牛': '🥩', '虾': '🦐', '蟹': '🦀',
@@ -131,9 +144,13 @@ const getDishEmoji = (name: string) => {
   return '🍽️'
 }
 
+// 获取图片URL
+// 注意：Vite已配置proxy，会自动将/uploads请求转发到后端
 const getImageUrl = (url: string) => {
   if (!url) return ''
-  // Vite proxy将自动转发 /uploads 请求到后端
+  // 如果已经是完整URL（http/https开头），直接返回
+  if (url.startsWith('http')) return url
+  // 否则直接返回相对路径，让Vite proxy处理
   return url
 }
 
@@ -180,14 +197,21 @@ const openDialog = (row?: any) => {
     Object.assign(form, { id: 0, name: '', price: 0, ingredients: '', status: 1, imageUrl: '' })
   }
   dialogVisible.value = true
+  
+  // 清除之前的验证错误
+  setTimeout(() => {
+    formRef.value?.clearValidate()
+  }, 0)
 }
 
 const submit = async () => {
-  if (!form.name) {
-    ElMessage.warning('请输入菜品名称')
-    return
-  }
+  // 使用表单验证
+  if (!formRef.value) return
+  
   try {
+    await formRef.value.validate()
+    
+    // 验证通过，提交数据
     if (isEdit.value) {
       await updateDish(form)
     } else {
@@ -196,9 +220,12 @@ const submit = async () => {
     ElMessage.success('保存成功')
     dialogVisible.value = false
     load()
-  } catch (error) {
-    console.error('保存失败:', error)
-    ElMessage.error('保存失败，请重试')
+  } catch (error: any) {
+    // 验证失败或保存失败
+    if (error?.message) {
+      console.error('保存失败:', error)
+      ElMessage.error('保存失败，请重试')
+    }
   }
 }
 
