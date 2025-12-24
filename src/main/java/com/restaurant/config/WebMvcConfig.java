@@ -6,6 +6,11 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.nio.file.Paths;
 
+// 4. WebMvcConfig.java - Web MVC 配置
+// 作用：配置静态资源映射
+// 功能：让上传的文件可以通过 URL 访问
+// 映射：/uploads/** → uploads/ 目录
+
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
 

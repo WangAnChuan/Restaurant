@@ -18,6 +18,15 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+// 1. SecurityConfig.java - Spring Security 安全配置
+// 密码加密器：BCrypt 加密
+// 认证管理器：处理登录认证
+// 安全过滤链：配置接口权限
+// 权限规则：
+// 登录接口 → 匿名访问
+// 财务接口 → BOSS 角色
+// 其他接口 → 需要认证
+
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {

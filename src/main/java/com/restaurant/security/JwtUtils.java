@@ -11,6 +11,12 @@ import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 
+
+// 1. JwtUtils.java - JWT 工具类
+// 生成 Token（用户登录时）
+// 验证 Token（每次请求时）
+// 提取用户名（从 Token 中）
+
 @Component
 public class JwtUtils {
 

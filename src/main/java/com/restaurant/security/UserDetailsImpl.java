@@ -11,6 +11,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+// 3. UserDetailsImpl.java - 用户详情实现类
+// 封装用户信息（用户名、密码、状态）
+// 封装权限列表（角色）
+// 实现 Spring Security 的 UserDetails 接口
+
 @Data
 @AllArgsConstructor
 public class UserDetailsImpl implements UserDetails {

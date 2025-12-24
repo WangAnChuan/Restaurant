@@ -1,5 +1,6 @@
 <template>
   <div class="account-page">
+    <!-- 页面头部 -->
     <div class="page-header">
       <div>
         <h2>💰 财务管理</h2>
@@ -10,7 +11,9 @@
         新增记录
       </el-button>
     </div>
-    
+
+
+    <!-- 数据表格 -->
     <el-card class="table-card">
       <el-table :data="tableData" stripe style="width: 100%">
         <el-table-column prop="transactionDate" label="日期" width="120" />
@@ -44,7 +47,8 @@
       <el-empty v-if="tableData.length === 0" description="暂无收支记录" />
     </el-card>
 
-    <!-- 居中弹窗代替侧边栏 -->
+
+    <!-- 新增/编辑弹窗 -->
     <el-dialog v-model="dialogVisible" title="新增收支记录" width="500px" center>
       <el-form :model="form" label-width="80px" size="large">
         <el-form-item label="类型">
@@ -88,35 +92,41 @@
   </div>
 </template>
 
+
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { getAccountPage, addAccount, delAccount, getCategoryList } from '@/api/account'
 import { ElMessage } from 'element-plus'
 
-const tableData = ref([])
-const dialogVisible = ref(false)
-const categories = ref<any[]>([])
+// 响应式数据
+const tableData = ref([])           // 表格数据
+const dialogVisible = ref(false)    // 弹窗显示状态
+const categories = ref<any[]>([])   // 分类列表
 
+// 表单数据
 const form = reactive({
-  type: 1,
-  categoryId: null,
-  categoryName: '',
-  amount: 0,
-  transactionDate: '',
-  paymentMethod: '',
-  remark: ''
+  type: 1,                // 类型：1=收入，2=支出
+  categoryId: null,       // 分类ID
+  categoryName: '',       // 分类名称
+  amount: 0,              // 金额
+  transactionDate: '',    // 交易日期
+  paymentMethod: '',      // 支付方式
+  remark: ''              // 备注
 })
 
+// 加载账目记录列表
 const loadData = async () => {
   const res: any = await getAccountPage({ current: 1, size: 20 })
   tableData.value = res.records
 }
 
+// 加载分类列表（根据收入/支出类型）
 const loadCategories = async () => {
   const res: any = await getCategoryList({ type: form.type })
   categories.value = res
 }
 
+// 打开新增弹窗
 const openDialog = () => {
   form.amount = 0
   form.remark = ''
@@ -127,6 +137,7 @@ const openDialog = () => {
   loadCategories()
 }
 
+// 提交表单
 const submit = async () => {
   if (!form.categoryId) {
     ElMessage.warning('请选择分类')

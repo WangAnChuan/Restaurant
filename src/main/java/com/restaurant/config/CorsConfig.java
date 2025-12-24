@@ -6,6 +6,11 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
+// 2. CorsConfig.java - 跨域配置
+// 作用：解决前后端分离的跨域问题
+// 配置：允许所有来源、所有方法、所有请求头
+// 场景：前端（localhost:3000）访问后端（localhost:9095）
+
 @Configuration
 public class CorsConfig {
     @Bean
