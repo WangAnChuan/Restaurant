@@ -12,6 +12,11 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+// 4. UserDetailsServiceImpl.java - 用户认证服务
+// 从数据库加载用户信息
+// 查询用户的角色和权限
+// 返回 UserDetailsImpl 对象
+
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
 

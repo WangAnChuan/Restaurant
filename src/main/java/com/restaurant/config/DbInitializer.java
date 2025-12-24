@@ -15,6 +15,14 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
+// 5. DbInitializer.java - 数据库初始化器
+// 作用：应用启动时自动初始化数据
+// 初始化内容：
+//        3 个角色（老板、采购员、访客）
+//        3 个用户（admin、buyer、guest）
+//        7 个分类（微信、支付宝、现金等）
+// 特点：幂等性、自动修复、版本升级
+
 @Component
 public class DbInitializer implements CommandLineRunner {
 
