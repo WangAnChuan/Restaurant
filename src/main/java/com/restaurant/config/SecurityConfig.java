@@ -68,7 +68,7 @@ public class SecurityConfig {
                 }))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/login", "/api/dish/public/**", "/api/common/upload", "/uploads/**",
+                        .requestMatchers("/api/auth/login","/api/auth/register" ,"/api/dish/public/**", "/api/common/upload", "/uploads/**",
                                 "/swagger-ui/**", "/v3/api-docs/**")
                         .permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Allow pre-flight checks
