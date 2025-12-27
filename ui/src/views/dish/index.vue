@@ -3,14 +3,14 @@
     <div class="page-header">
       <div>
         <h2>🍽️ 菜品管理</h2>
-        <p class="subtitle">管理餐厅菜品信息</p>
+        <p class="subtitle">管理餐厅菜品信息</p >
       </div>
       <el-button type="primary" size="large" @click="openDialog()">
         <el-icon><Plus /></el-icon>
         添加菜品
       </el-button>
     </div>
-    
+
     <el-row :gutter="20">
       <el-col :xs="24" :sm="12" :md="8" :lg="6" v-for="dish in list" :key="dish.id" style="margin-bottom: 20px;">
         <el-card class="dish-card" shadow="hover">
@@ -22,7 +22,7 @@
           </div>
           <div class="dish-info">
             <h3 class="dish-name">{{ dish.name }}</h3>
-            <p class="dish-ingredients">{{ dish.ingredients || '厨师秘制' }}</p>
+            <p class="dish-ingredients">{{ dish.ingredients || '厨师秘制' }}</p >
             <div class="dish-footer">
               <span class="dish-price">¥ {{ dish.price }}</span>
               <div class="dish-actions">
@@ -38,7 +38,7 @@
         </el-card>
       </el-col>
     </el-row>
-    
+
     <el-empty v-if="list.length === 0" description="暂无菜品数据" />
 
     <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑菜品' : '添加菜品'" width="520px" center>
@@ -46,20 +46,25 @@
         <el-form-item label="菜品名称" prop="name">
           <el-input v-model="form.name" placeholder="请输入菜品名称" />
         </el-form-item>
+        <el-form-item label="菜品分类" prop="categoryId">
+          <el-select v-model="form.categoryId" placeholder="请选择菜品分类" style="width: 100%">
+            <el-option v-for="item in categoryList" :key="item.id" :label="item.name" :value="item.id" />
+          </el-select>
+        </el-form-item>
         <el-form-item label="菜品图片">
           <div class="upload-area">
             <el-upload
-              class="image-uploader"
-              :action="uploadUrl"
-              :headers="uploadHeaders"
-              :show-file-list="false"
-              :on-success="handleUploadSuccess"
-              :on-error="handleUploadError"
-              :before-upload="beforeUpload"
-              accept="image/*"
+                class="image-uploader"
+                :action="uploadUrl"
+                :headers="uploadHeaders"
+                :show-file-list="false"
+                :on-success="handleUploadSuccess"
+                :on-error="handleUploadError"
+                :before-upload="beforeUpload"
+                accept="image/*"
             >
               <div v-if="form.imageUrl" class="image-preview">
-                <img :src="getImageUrl(form.imageUrl)" alt="菜品图片" />
+                < img :src="getImageUrl(form.imageUrl)" alt="菜品图片" />
                 <div class="image-mask">
                   <span>点击更换</span>
                 </div>
@@ -81,8 +86,8 @@
           <el-input v-model="form.ingredients" type="textarea" placeholder="请输入配料说明" :rows="3" />
         </el-form-item>
         <el-form-item label="状态">
-          <el-switch v-model="form.status" :active-value="1" :inactive-value="0" 
-            active-text="在售" inactive-text="停售" />
+          <el-switch v-model="form.status" :active-value="1" :inactive-value="0"
+                     active-text="在售" inactive-text="停售" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -95,7 +100,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from 'vue'
-import { getDishPage, addDish, updateDish, delDish } from '@/api/dish'
+import { getDishPage, addDish, updateDish, delDish, getDishCategoryList } from '@/api/dish'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores/user'
 
@@ -105,7 +110,9 @@ interface Dish {
   price: number
   ingredients: string
   status: number
+
   imageUrl: string
+  categoryId?: number // Add categoryId
 }
 
 const userStore = useUserStore()
@@ -114,16 +121,20 @@ const uploadHeaders = computed(() => ({
   'Authorization': `Bearer ${userStore.token}`
 }))
 const list = ref<Dish[]>([])
+const categoryList = ref<any[]>([]) // Category List
 const dialogVisible = ref(false)
 const isEdit = ref(false)
 const formRef = ref()
-const form = reactive({ id: 0, name: '', price: 0, ingredients: '', status: 1, imageUrl: '' })
+const form = reactive({ id: 0, name: '', categoryId: undefined as number | undefined, price: 0, ingredients: '', status: 1, imageUrl: '' })
 
 // 表单验证规则
 const formRules = {
   name: [
     { required: true, message: '请输入菜品名称', trigger: 'blur' },
     { min: 1, max: 50, message: '菜品名称长度在1到50个字符', trigger: 'blur' }
+  ],
+  categoryId: [
+    { required: true, message: '请选择菜品分类', trigger: 'change' }
   ],
   price: [
     { required: true, message: '请输入价格', trigger: 'blur' },
@@ -157,7 +168,7 @@ const getImageUrl = (url: string) => {
 const beforeUpload = (file: File) => {
   const isImage = file.type.startsWith('image/')
   const isLt5M = file.size / 1024 / 1024 < 5
-  
+
   if (!isImage) {
     ElMessage.error('只能上传图片文件!')
     return false
@@ -184,8 +195,12 @@ const handleUploadError = (error: any) => {
 }
 
 const load = async () => {
-  const res: any = await getDishPage({ current: 1, size: 100 })
+  const [res, catRes]: any = await Promise.all([
+    getDishPage({ current: 1, size: 100 }),
+    getDishCategoryList()
+  ])
   list.value = res.records
+  categoryList.value = catRes
 }
 
 const openDialog = (row?: any) => {
@@ -194,10 +209,10 @@ const openDialog = (row?: any) => {
     Object.assign(form, row)
   } else {
     isEdit.value = false
-    Object.assign(form, { id: 0, name: '', price: 0, ingredients: '', status: 1, imageUrl: '' })
+    Object.assign(form, { id: 0, name: '', categoryId: undefined, price: 0, ingredients: '', status: 1, imageUrl: '' })
   }
   dialogVisible.value = true
-  
+
   // 清除之前的验证错误
   setTimeout(() => {
     formRef.value?.clearValidate()
@@ -207,10 +222,10 @@ const openDialog = (row?: any) => {
 const submit = async () => {
   // 使用表单验证
   if (!formRef.value) return
-  
+
   try {
     await formRef.value.validate()
-    
+
     // 验证通过，提交数据
     if (isEdit.value) {
       await updateDish(form)
