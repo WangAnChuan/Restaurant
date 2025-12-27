@@ -3,7 +3,7 @@
     <div class="page-header">
       <div>
         <h2>🍽️ 菜品管理</h2>
-        <p class="subtitle">管理餐厅菜品信息</p>
+        <p class="subtitle">管理餐厅菜品信息</p >
       </div>
       <el-button type="primary" size="large" @click="openDialog()">
         <el-icon><Plus /></el-icon>
@@ -46,7 +46,7 @@
         </el-card>
       </el-col>
     </el-row>
-    
+
     <el-empty v-if="list.length === 0" description="暂无菜品数据" />
 
     <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑菜品' : '添加菜品'" width="520px" center>
@@ -62,17 +62,17 @@
         <el-form-item label="菜品图片">
           <div class="upload-area">
             <el-upload
-              class="image-uploader"
-              :action="uploadUrl"
-              :headers="uploadHeaders"
-              :show-file-list="false"
-              :on-success="handleUploadSuccess"
-              :on-error="handleUploadError"
-              :before-upload="beforeUpload"
-              accept="image/*"
+                class="image-uploader"
+                :action="uploadUrl"
+                :headers="uploadHeaders"
+                :show-file-list="false"
+                :on-success="handleUploadSuccess"
+                :on-error="handleUploadError"
+                :before-upload="beforeUpload"
+                accept="image/*"
             >
               <div v-if="form.imageUrl" class="image-preview">
-                <img :src="getImageUrl(form.imageUrl)" alt="菜品图片" />
+                < img :src="getImageUrl(form.imageUrl)" alt="菜品图片" />
                 <div class="image-mask">
                   <span>点击更换</span>
                 </div>
@@ -97,8 +97,8 @@
           <el-input v-model="form.description" type="textarea" placeholder="请输入菜品详细描述" :rows="3" />
         </el-form-item>
         <el-form-item label="状态">
-          <el-switch v-model="form.status" :active-value="1" :inactive-value="0" 
-            active-text="在售" inactive-text="停售" />
+          <el-switch v-model="form.status" :active-value="1" :inactive-value="0"
+                     active-text="在售" inactive-text="停售" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -201,7 +201,7 @@ const getImageUrl = (url: string) => {
 const beforeUpload = (file: File) => {
   const isImage = file.type.startsWith('image/')
   const isLt5M = file.size / 1024 / 1024 < 5
-  
+
   if (!isImage) {
     ElMessage.error('只能上传图片文件!')
     return false
@@ -258,7 +258,7 @@ const openDialog = (row?: any) => {
     })
   }
   dialogVisible.value = true
-  
+
   // 清除之前的验证错误
   setTimeout(() => {
     formRef.value?.clearValidate()
@@ -268,10 +268,10 @@ const openDialog = (row?: any) => {
 const submit = async () => {
   // 使用表单验证
   if (!formRef.value) return
-  
+
   try {
     await formRef.value.validate()
-    
+
     // 验证通过，提交数据
     if (isEdit.value) {
       await updateDish(form)

@@ -17,15 +17,24 @@ public class CategoryController {
     private CategoryServiceImpl categoryService;
 
     @GetMapping("/list")
-    public Result<List<Category>> list(@RequestParam(required = false) Integer type) {
+    public Result<List<Category>> list(@RequestParam(required = false) Integer type,
+            @RequestParam(required = false) String name) {
         LambdaQueryWrapper<Category> query = new LambdaQueryWrapper<>();
         query.eq(type != null, Category::getType, type);
+        query.like(name != null && !name.isEmpty(), Category::getName, name);
         return Result.success(categoryService.list(query));
     }
 
     @PostMapping
     public Result<Boolean> save(@RequestBody Category category) {
+        category.setCreateTime(java.time.LocalDateTime.now());
         return Result.success(categoryService.save(category));
+    }
+
+    @PutMapping
+    public Result<Boolean> update(@RequestBody Category category) {
+        category.setCreateTime(java.time.LocalDateTime.now());
+        return Result.success(categoryService.updateById(category));
     }
 
     @DeleteMapping("/{id}")
