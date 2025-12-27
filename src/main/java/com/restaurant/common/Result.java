@@ -40,3 +40,4 @@ public class Result<T> {
         return error(500, msg);
     }
 }
+

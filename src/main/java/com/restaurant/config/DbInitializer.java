@@ -62,13 +62,13 @@ public class DbInitializer implements CommandLineRunner {
         initUser(3L, "guest", defaultPassword, "游客", 3L);
 
         // 3. 初始化分类 - 中文
-        initCategory(1, "微信");
-        initCategory(1, "支付宝");
-        initCategory(1, "现金");
-        initCategory(2, "肉类食材");
-        initCategory(2, "蔬菜食材");
-        initCategory(2, "调味品");
-        initCategory(2, "日用品");
+        // initCategory(1, "微信");
+        // initCategory(1, "支付宝");
+        // initCategory(1, "现金");
+        // initCategory(2, "肉类食材");
+        // initCategory(2, "蔬菜食材");
+        // initCategory(2, "调味品");
+        // initCategory(2, "日用品");
 
         System.out.println("========== 初始化完成 ==========");
     }
