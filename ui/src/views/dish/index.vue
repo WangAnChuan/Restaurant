@@ -46,11 +46,6 @@
         <el-form-item label="菜品名称" prop="name">
           <el-input v-model="form.name" placeholder="请输入菜品名称" />
         </el-form-item>
-        <el-form-item label="菜品分类" prop="categoryId">
-          <el-select v-model="form.categoryId" placeholder="请选择菜品分类" style="width: 100%">
-            <el-option v-for="item in categoryList" :key="item.id" :label="item.name" :value="item.id" />
-          </el-select>
-        </el-form-item>
         <el-form-item label="菜品图片">
           <div class="upload-area">
             <el-upload
@@ -100,7 +95,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from 'vue'
-import { getDishPage, addDish, updateDish, delDish, getDishCategoryList } from '@/api/dish'
+import { getDishPage, addDish, updateDish, delDish } from '@/api/dish'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores/user'
 
@@ -110,9 +105,7 @@ interface Dish {
   price: number
   ingredients: string
   status: number
-
   imageUrl: string
-  categoryId?: number // Add categoryId
 }
 
 const userStore = useUserStore()
@@ -121,20 +114,16 @@ const uploadHeaders = computed(() => ({
   'Authorization': `Bearer ${userStore.token}`
 }))
 const list = ref<Dish[]>([])
-const categoryList = ref<any[]>([]) // Category List
 const dialogVisible = ref(false)
 const isEdit = ref(false)
 const formRef = ref()
-const form = reactive({ id: 0, name: '', categoryId: undefined as number | undefined, price: 0, ingredients: '', status: 1, imageUrl: '' })
+const form = reactive({ id: 0, name: '', price: 0, ingredients: '', status: 1, imageUrl: '' })
 
 // 表单验证规则
 const formRules = {
   name: [
     { required: true, message: '请输入菜品名称', trigger: 'blur' },
     { min: 1, max: 50, message: '菜品名称长度在1到50个字符', trigger: 'blur' }
-  ],
-  categoryId: [
-    { required: true, message: '请选择菜品分类', trigger: 'change' }
   ],
   price: [
     { required: true, message: '请输入价格', trigger: 'blur' },
@@ -195,12 +184,8 @@ const handleUploadError = (error: any) => {
 }
 
 const load = async () => {
-  const [res, catRes]: any = await Promise.all([
-    getDishPage({ current: 1, size: 100 }),
-    getDishCategoryList() 
-  ])
+  const res: any = await getDishPage({ current: 1, size: 100 })
   list.value = res.records
-  categoryList.value = catRes
 }
 
 const openDialog = (row?: any) => {
@@ -209,7 +194,7 @@ const openDialog = (row?: any) => {
     Object.assign(form, row)
   } else {
     isEdit.value = false
-    Object.assign(form, { id: 0, name: '', categoryId: undefined, price: 0, ingredients: '', status: 1, imageUrl: '' })
+    Object.assign(form, { id: 0, name: '', price: 0, ingredients: '', status: 1, imageUrl: '' })
   }
   dialogVisible.value = true
   

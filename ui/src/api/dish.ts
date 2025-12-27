@@ -15,7 +15,3 @@ export const updateDish = (data: any) => {
 export const delDish = (id: number) => {
     return request({ url: `/dish/${id}`, method: 'delete' })
 }
-
-export const getDishCategoryList = (params?: any) => {
-    return request({ url: '/dish/category/list', method: 'get', params })
-}
