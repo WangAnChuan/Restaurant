@@ -2,6 +2,8 @@ import axios from 'axios'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores/user'
 
+// 配置 Axios 实例，统一处理所有 HTTP 请求
+// Axios 实例配置、请求/响应拦截器
 const request = axios.create({
     baseURL: 'http://localhost:9095/api',
     timeout: 5000
