@@ -15,6 +15,10 @@ public class Dish implements Serializable {
     private BigDecimal price;
     private String ingredients;
     private String imageUrl;
+    private Long categoryId; // New field
+    private String code; // New field
+    private String description; // New field
+    private Integer sort; // New field
     private Integer status; // 1:OnShelf 0:OffShelf
 
     @TableField(fill = FieldFill.INSERT)
