@@ -4,11 +4,10 @@
       <el-aside width="260px" class="sidebar">
         <div class="logo-section">
           <div class="logo-circle">
-            <span class="logo-icon">R</span>
+            <img :src="titleImg" class="logo-image" alt="Logo" />
           </div>
           <div class="logo-text">
-            <span class="brand-name">RestManage</span>
-            <span class="brand-tag">餐饮管理系统</span>
+            <span class="brand-name">友家兄弟土菜馆</span>
           </div>
         </div>
         
@@ -131,6 +130,7 @@
 <script setup lang="ts">
 import { useUserStore } from '@/stores/user'
 import { useRouter, useRoute } from 'vue-router'
+import titleImg from '@/assets/title.png'
 import { ElMessage } from 'element-plus'
 import { computed } from 'vue'
 
@@ -210,6 +210,12 @@ const handleLogout = () => {
   color: white;
   font-weight: 700;
   font-size: 20px;
+}
+
+.logo-image {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
 }
 
 .logo-text {

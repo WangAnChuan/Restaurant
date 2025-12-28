@@ -12,6 +12,11 @@ public class Reservation implements Serializable {
     @TableId(type = IdType.AUTO)
     private Long id;
     private Long tableId;
+
+    // Table number for display (not in DB, filled by service)
+    @TableField(exist = false)
+    private String tableNumber;
+
     private String customerName;
     private String customerPhone;
     private LocalDate reservationDate;

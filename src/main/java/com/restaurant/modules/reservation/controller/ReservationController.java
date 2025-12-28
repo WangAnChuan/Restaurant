@@ -22,6 +22,9 @@ public class ReservationController {
     @Autowired
     private ReservationServiceImpl reservationService;
 
+    @Autowired
+    private com.restaurant.modules.reservation.service.impl.RestaurantTableServiceImpl tableService;
+
     /**
      * Get available tables for specific date, time and guest count
      */
@@ -73,7 +76,17 @@ public class ReservationController {
         query.eq(Reservation::getCreateBy, userId)
                 .orderByDesc(Reservation::getReservationDate)
                 .orderByDesc(Reservation::getReservationTime);
-        return Result.success(reservationService.list(query));
+        List<Reservation> reservations = reservationService.list(query);
+
+        // Fill table number for each reservation
+        reservations.forEach(reservation -> {
+            RestaurantTable table = tableService.getById(reservation.getTableId());
+            if (table != null) {
+                reservation.setTableNumber(table.getTableNumber());
+            }
+        });
+
+        return Result.success(reservations);
     }
 
     /**

@@ -132,6 +132,11 @@
       <el-table :data="myReservations" stripe>
         <el-table-column prop="reservationDate" label="日期" width="120" />
         <el-table-column prop="reservationTime" label="时间" width="100" />
+        <el-table-column label="桌号" width="100">
+          <template #default="{ row }">
+            {{ row.tableNumber || '桌' + row.tableId }}
+          </template>
+        </el-table-column>
         <el-table-column prop="guestCount" label="人数" width="80" />
         <el-table-column prop="customerName" label="姓名" width="100" />
         <el-table-column prop="customerPhone" label="电话" width="120" />
@@ -374,10 +379,11 @@ onMounted(() => {
 }
 
 .table-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: 15px;
   margin-bottom: 20px;
+  overflow-x: auto;
 }
 
 .table-card {
