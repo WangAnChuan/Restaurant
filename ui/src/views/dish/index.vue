@@ -56,7 +56,7 @@
         </el-form-item>
         <el-form-item label="菜品分类" prop="categoryId">
           <el-select v-model="form.categoryId" placeholder="请选择菜品分类" style="width: 100%">
-            <el-option v-for="item in categoryList" :key="item.id" :label="item.name" :value="item.id" />
+            <el-option v-for="item in categoryList" :key="item.id" :label="getCategoryName(item.name)" :value="item.id" />
           </el-select>
         </el-form-item>
         <el-form-item label="菜品图片">
