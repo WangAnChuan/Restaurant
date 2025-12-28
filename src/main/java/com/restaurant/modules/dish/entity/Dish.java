@@ -20,10 +20,6 @@ public class Dish implements Serializable {
     private String description; // New field
     private Integer sort; // New field
     private Integer status; // 1:OnShelf 0:OffShelf
-    private Long categoryId; // New field
-    private String code; // New field
-    private String description; // New field
-    private Integer sort; // New field
 
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;
