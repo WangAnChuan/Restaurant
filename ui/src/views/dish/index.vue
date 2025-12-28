@@ -10,6 +10,13 @@
         添加菜品
       </el-button>
     </div>
+    
+    <div class="category-filter">
+      <el-tabs v-model="activeCategory" class="custom-tabs">
+        <el-tab-pane label="全部" name="" />
+        <el-tab-pane v-for="cat in categoryList" :key="cat.id" :label="getCategoryName(cat.name)" :name="String(cat.id)" />
+      </el-tabs>
+    </div>
 
     <el-row :gutter="20">
       <el-col :xs="24" :sm="12" :md="8" :lg="6" v-for="dish in list" :key="dish.id" style="margin-bottom: 20px;">
@@ -22,7 +29,8 @@
           </div>
           <div class="dish-info">
             <h3 class="dish-name">{{ dish.name }}</h3>
-            <p class="dish-ingredients">{{ dish.ingredients || '厨师秘制' }}</p >
+            <p class="dish-desc" :title="dish.description">{{ dish.description || '暂无描述' }}</p>
+            <p class="dish-ingredients">{{ dish.ingredients || '厨师秘制' }}</p>
             <div class="dish-footer">
               <span class="dish-price">¥ {{ dish.price }}</span>
               <div class="dish-actions">
@@ -83,7 +91,10 @@
           <el-input-number v-model="form.price" :precision="2" :min="0" style="width: 100%" />
         </el-form-item>
         <el-form-item label="配料">
-          <el-input v-model="form.ingredients" type="textarea" placeholder="请输入配料说明" :rows="3" />
+          <el-input v-model="form.ingredients" type="textarea" placeholder="请输入配料说明" :rows="2" />
+        </el-form-item>
+        <el-form-item label="描述">
+          <el-input v-model="form.description" type="textarea" placeholder="请输入菜品详细描述" :rows="3" />
         </el-form-item>
         <el-form-item label="状态">
           <el-switch v-model="form.status" :active-value="1" :inactive-value="0"
@@ -99,7 +110,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, reactive, onMounted, computed, watch } from 'vue'
 import { getDishPage, addDish, updateDish, delDish, getDishCategoryList } from '@/api/dish'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores/user'
@@ -112,7 +123,8 @@ interface Dish {
   status: number
 
   imageUrl: string
-  categoryId?: number // Add categoryId
+  categoryId?: number
+  description?: string
 }
 
 const userStore = useUserStore()
@@ -121,11 +133,21 @@ const uploadHeaders = computed(() => ({
   'Authorization': `Bearer ${userStore.token}`
 }))
 const list = ref<Dish[]>([])
-const categoryList = ref<any[]>([]) // Category List
+const categoryList = ref<any[]>([]) 
+const activeCategory = ref('') // Current active tab
 const dialogVisible = ref(false)
 const isEdit = ref(false)
 const formRef = ref()
-const form = reactive({ id: 0, name: '', categoryId: undefined as number | undefined, price: 0, ingredients: '', status: 1, imageUrl: '' })
+const form = reactive({ 
+  id: 0, 
+  name: '', 
+  categoryId: undefined as number | undefined, 
+  price: 0, 
+  ingredients: '', 
+  description: '', // Add description
+  status: 1, 
+  imageUrl: '' 
+})
 
 // 表单验证规则
 const formRules = {
@@ -147,6 +169,17 @@ const dishEmojis: Record<string, string> = {
   '面': '🍜', '饭': '🍚', '汤': '🍲', '菜': '🥬', '蛋': '🥚', '豆': '🫘',
   '酒': '🍺', '茶': '🍵', '果': '🍎', '甜': '🍰', '辣': '🌶️'
 }
+
+// Data Mapping for Localization
+const categoryNameMap: Record<string, string> = {
+  'Hot Dishes': '热菜',
+  'Cold Dishes': '凉菜',
+  'Soup': '汤品',
+  'Beverages': '饮料',
+  'Main Course': '主食'
+}
+
+const getCategoryName = (name: string) => categoryNameMap[name] || name
 
 const getDishEmoji = (name: string) => {
   for (const key in dishEmojis) {
@@ -196,8 +229,12 @@ const handleUploadError = (error: any) => {
 
 const load = async () => {
   const [res, catRes]: any = await Promise.all([
-    getDishPage({ current: 1, size: 100 }),
-    getDishCategoryList()
+    getDishPage({ 
+      current: 1, 
+      size: 100,
+      categoryId: activeCategory.value ? Number(activeCategory.value) : undefined
+    }),
+    getDishCategoryList() 
   ])
   list.value = res.records
   categoryList.value = catRes
@@ -209,7 +246,16 @@ const openDialog = (row?: any) => {
     Object.assign(form, row)
   } else {
     isEdit.value = false
-    Object.assign(form, { id: 0, name: '', categoryId: undefined, price: 0, ingredients: '', status: 1, imageUrl: '' })
+    Object.assign(form, { 
+      id: 0, 
+      name: '', 
+      categoryId: activeCategory.value ? Number(activeCategory.value) : undefined, // Pre-select current tab category
+      price: 0, 
+      ingredients: '', 
+      description: '', 
+      status: 1, 
+      imageUrl: '' 
+    })
   }
   dialogVisible.value = true
 
@@ -250,6 +296,19 @@ const handleDel = async (id: number) => {
   load()
 }
 
+// Watch activeCategory to reload list automatically
+watch(activeCategory, () => {
+    getDishPage({ 
+      current: 1, 
+      size: 100,
+      categoryId: activeCategory.value ? Number(activeCategory.value) : undefined
+    }).then((res: any) => {
+      list.value = res.records
+    })
+})
+
+
+
 onMounted(() => load())
 </script>
 
@@ -263,6 +322,38 @@ onMounted(() => load())
   justify-content: space-between;
   align-items: center;
   margin-bottom: 25px;
+}
+
+.category-filter {
+  margin-bottom: 25px;
+  background: #f5f7fa;
+  padding: 5px 5px 0;
+  border-radius: 8px;
+}
+
+.custom-tabs :deep(.el-tabs__header) {
+  margin: 0;
+}
+
+.custom-tabs :deep(.el-tabs__nav-wrap::after) {
+  display: none; /* Remove bottom line */
+}
+
+.custom-tabs :deep(.el-tabs__item) {
+  font-size: 15px;
+  font-weight: 500;
+  padding: 0 25px;
+  color: #606266;
+}
+
+.custom-tabs :deep(.el-tabs__item.is-active) {
+  color: #409EFF;
+  font-weight: 600;
+}
+
+.custom-tabs :deep(.el-tabs__active-bar) {
+  height: 3px;
+  border-radius: 2px;
 }
 
 .page-header h2 {
@@ -318,6 +409,19 @@ onMounted(() => load())
   font-size: 16px;
   font-weight: 600;
   color: #333;
+}
+
+.dish-desc {
+  font-size: 13px;
+  color: #666;
+  margin: 0 0 8px;
+  line-height: 1.4;
+  height: 36px; /* 2 lines */
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 .dish-ingredients {
