@@ -43,6 +43,16 @@ const router = createRouter({
                     path: 'menu',
                     component: () => import('@/views/menu/index.vue'),
                     meta: { roles: ['ROLE_VISITOR'] }
+                },
+                {
+                    path: 'reservation',
+                    component: () => import('@/views/reservation/index.vue'),
+                    meta: { roles: ['ROLE_VISITOR'] }
+                },
+                {
+                    path: 'reservation-manage',
+                    component: () => import('@/views/reservation/manage.vue'),
+                    meta: { roles: ['ROLE_BOSS'] }
                 }
             ]
         }

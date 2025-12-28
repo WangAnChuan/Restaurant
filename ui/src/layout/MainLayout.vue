@@ -43,6 +43,10 @@
               <el-icon><Food /></el-icon>
               <span>菜品管理</span>
             </el-menu-item>
+            <el-menu-item index="/reservation-manage">
+              <el-icon><Calendar /></el-icon>
+              <span>预定管理</span>
+            </el-menu-item>
           </template>
 
           <div class="menu-section-label" v-if="hasRole('Purchaser') || hasRole('Boss')">运营</div>
@@ -58,6 +62,10 @@
             <el-menu-item index="/menu">
               <el-icon><Menu /></el-icon>
               <span>今日菜单</span>
+            </el-menu-item>
+            <el-menu-item index="/reservation">
+              <el-icon><Calendar /></el-icon>
+              <span>在线预定</span>
             </el-menu-item>
           </template>
         </el-menu>
@@ -147,7 +155,9 @@ const currentRouteName = computed(() => {
     '/category': '分类管理',
     '/dish': '菜品管理',
     '/purchase': '采购清单',
-    '/menu': '今日菜单'
+    '/menu': '今日菜单',
+    '/reservation': '在线预定',
+    '/reservation-manage': '预定管理'
   }
   return nameMap[route.path] || '餐饮管理系统'
 })

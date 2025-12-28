@@ -72,7 +72,7 @@
                 accept="image/*"
             >
               <div v-if="form.imageUrl" class="image-preview">
-                < img :src="getImageUrl(form.imageUrl)" alt="菜品图片" />
+                <img :src="getImageUrl(form.imageUrl)" alt="菜品图片" />
                 <div class="image-mask">
                   <span>点击更换</span>
                 </div>
@@ -272,11 +272,14 @@ const submit = async () => {
   try {
     await formRef.value.validate()
 
-    // 验证通过，提交数据
+    // 验证通过，准备提交数据
+    // 排除 auto-fill 字段 (createTime, updateTime, deleted)
+    const { createTime, updateTime, deleted, ...submitData } = form as any
+    
     if (isEdit.value) {
-      await updateDish(form)
+      await updateDish(submitData)
     } else {
-      await addDish(form)
+      await addDish(submitData)
     }
     ElMessage.success('保存成功')
     dialogVisible.value = false

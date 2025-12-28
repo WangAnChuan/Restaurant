@@ -28,10 +28,12 @@ public class DishController {
     @GetMapping("/page")
     public Result<Page<Dish>> page(@RequestParam(defaultValue = "1") Integer current,
             @RequestParam(defaultValue = "10") Integer size,
-            @RequestParam(required = false) String name) {
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) Long categoryId) {
         Page<Dish> page = new Page<>(current, size);
         LambdaQueryWrapper<Dish> query = new LambdaQueryWrapper<>();
         query.like(name != null, Dish::getName, name);
+        query.eq(categoryId != null, Dish::getCategoryId, categoryId);
         return Result.success(dishService.page(page, query));
     }
 
