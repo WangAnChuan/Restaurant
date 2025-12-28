@@ -87,6 +87,19 @@
         </el-table-column>
       </el-table>
       <el-empty v-if="tableData.length === 0" description="暂无收支记录" />
+      
+      <!-- 分页组件 -->
+      <div class="pagination-container">
+        <el-pagination
+          v-model:current-page="currentPage"
+          v-model:page-size="pageSize"
+          :page-sizes="[10, 20, 50, 100]"
+          layout="total, sizes, prev, pager, next, jumper"
+          :total="total"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+        />
+      </div>
     </el-card>
 
 
@@ -146,6 +159,11 @@ const dialogVisible = ref(false)    // 弹窗显示状态
 const categories = ref<any[]>([])   // 分类列表
 const searchCategories = ref<any[]>([]) // 搜索用的分类列表
 
+// 分页数据
+const total = ref(0)
+const currentPage = ref(1)
+const pageSize = ref(10)
+
 // 搜索参数
 const searchParams = reactive({
   type: undefined,
@@ -168,18 +186,30 @@ const form = reactive({
 // 加载账目记录列表
 const loadData = async () => {
   const params = {
-    current: 1, 
-    size: 20,
+    current: currentPage.value, 
+    size: pageSize.value,
     ...searchParams
   }
   const res: any = await getAccountPage(params)
   tableData.value = res.records
+  total.value = res.total
+}
+
+const handleSizeChange = (val: number) => {
+  pageSize.value = val
+  loadData()
+}
+
+const handleCurrentChange = (val: number) => {
+  currentPage.value = val
+  loadData()
 }
 
 const resetSearch = () => {
   searchParams.type = undefined
   searchParams.categoryId = undefined
   searchParams.paymentMethod = undefined
+  currentPage.value = 1
   loadData()
 }
 
@@ -307,5 +337,11 @@ onMounted(() => {
 .amount-expense {
   font-weight: 600;
   color: #ef4444;
+}
+
+.pagination-container {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
 }
 </style>
