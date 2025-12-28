@@ -15,7 +15,6 @@ public class Dish implements Serializable {
     private BigDecimal price;
     private String ingredients;
     private String imageUrl;
-    @TableField("category_id")
     private Long categoryId; // New field
     private String code; // New field
     private String description; // New field
