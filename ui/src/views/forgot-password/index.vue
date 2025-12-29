@@ -10,12 +10,12 @@
       </div>
     </div>
 
-    <!-- Right Side: Login Form -->
+    <!-- Right Side: Forgot Password Form -->
     <div class="right-panel">
       <div class="login-card-clean">
         <div class="form-header">
-          <h2 class="form-title">{{ isRegister ? '注册账号' : '用户登录' }}</h2>
-          <p class="form-subtitle">{{ isRegister ? 'Create an account' : 'Login to your account' }}</p>
+          <h2 class="form-title">忘记密码</h2>
+          <p class="form-subtitle">Reset your password</p>
         </div>
 
         <el-form :model="form" class="clean-form" size="large" @keyup.enter="handleSubmit">
@@ -23,46 +23,44 @@
             <label class="form-label">账号 / Account</label>
             <el-input 
               v-model="form.username" 
-              placeholder="请输入用户名" 
+              placeholder="请输入账号" 
               class="clean-input"
             />
           </div>
           
           <div class="form-group">
-            <div class="label-row">
-              <label class="form-label">密码 / Password</label>
-            </div>
+            <label class="form-label">新密码 / New Password</label>
             <el-input 
               v-model="form.password" 
               type="password" 
-              placeholder="请输入密码" 
+              placeholder="请输入新密码" 
+              show-password 
+              class="clean-input"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">确认密码 / Confirm Password</label>
+            <el-input 
+              v-model="form.confirmPassword" 
+              type="password" 
+              placeholder="请再次输入新密码" 
               show-password 
               class="clean-input"
             />
           </div>
 
           <button class="submit-btn" @click.prevent="handleSubmit" :disabled="loading">
-            <span v-if="!loading">{{ isRegister ? '立即注册' : '立即登录' }}</span>
+            <span v-if="!loading">修改密码</span>
             <span v-else>处理中...</span>
           </button>
 
           <div class="toggle-box">
-            {{ isRegister ? '已有账号？' : '还没有账号？' }}
-            <a href="#" class="toggle-link" @click.prevent="isRegister = !isRegister">
-              {{ isRegister ? '立即登录' : '立即注册' }}
-            </a>
-          </div>
-          
-          <div v-if="!isRegister" class="forgot-password-box">
-            <a href="#" class="forgot-password-link" @click.prevent="goToForgotPassword">
-              忘记密码？
+            <a href="#" class="toggle-link" @click.prevent="goToLogin">
+              返回登录
             </a>
           </div>
         </el-form>
-
-        <div class="form-footer">
-          <p class="test-account">测试账号：admin / buyer / guest (密码: 123456)</p>
-        </div>
       </div>
       
       <div class="copyright">
@@ -75,54 +73,51 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { useUserStore } from '@/stores/user'
-import { register } from '@/api/auth'
+import { resetPassword } from '@/api/auth'
 import { ElMessage } from 'element-plus'
 
 const router = useRouter()
-const userStore = useUserStore()
 const loading = ref(false)
-const isRegister = ref(false)
 
 const form = reactive({
   username: '',
-  password: ''
+  password: '',
+  confirmPassword: ''
 })
 
 const handleSubmit = async () => {
-  if (!form.username || !form.password) {
-    ElMessage.warning('请输入用户名和密码')
+  if (!form.username || !form.password || !form.confirmPassword) {
+    ElMessage.warning('请填写完整信息')
     return
   }
+
+  if (form.password !== form.confirmPassword) {
+    ElMessage.warning('两次输入的密码不一致')
+    return
+  }
+
+  if (form.password.length < 6) {
+    ElMessage.warning('密码长度至少为6位')
+    return
+  }
+
   loading.value = true
   try {
-    if (isRegister.value) {
-      // Register
-      await register(form)
-      ElMessage.success('注册成功，请登录')
-      isRegister.value = false
-    } else {
-      // Login
-      await userStore.loginAction(form)
-      await userStore.getInfoAction()
-      ElMessage.success('登录成功')
-      if (userStore.roles.includes('ROLE_BOSS')) {
-        router.push('/dashboard')
-      } else if (userStore.roles.includes('ROLE_PURCHASER')) {
-        router.push('/purchase')
-      } else {
-        router.push('/menu')
-      }
-    }
+    await resetPassword({
+      username: form.username,
+      password: form.password
+    })
+    ElMessage.success('密码修改成功，请使用新密码登录')
+    router.push('/login')
   } catch (e: any) {
-    ElMessage.error(e.message || (isRegister.value ? '注册失败' : '登录失败'))
+    ElMessage.error(e.message || '密码修改失败')
   } finally {
     loading.value = false
   }
 }
 
-const goToForgotPassword = () => {
-  router.push('/forgot-password')
+const goToLogin = () => {
+  router.push('/login')
 }
 </script>
 
@@ -252,12 +247,12 @@ const goToForgotPassword = () => {
 }
 
 .clean-input :deep(.el-input__wrapper) {
-  padding: 0 16px; /* Reduced vertical padding */
+  padding: 0 16px;
   box-shadow: 0 0 0 1px #cbd5e1 inset;
   border-radius: 12px;
   background: #fff;
   transition: all 0.2s;
-  height: 42px; /* Reduced height from 52px */
+  height: 42px;
   display: flex;
   align-items: center;
 }
@@ -278,9 +273,9 @@ const goToForgotPassword = () => {
 
 
 .submit-btn {
-  height: 42px; /* Reduced height from 52px */
+  height: 42px;
   margin-top: 10px;
-  background: #e64a19; /* Brand Orange */
+  background: #e64a19;
   color: white;
   border: none;
   border-radius: 12px;
@@ -318,44 +313,11 @@ const goToForgotPassword = () => {
   color: #e64a19;
   font-weight: 600;
   text-decoration: none;
-  margin-left: 5px;
   cursor: pointer;
 }
 
 .toggle-link:hover {
   text-decoration: underline;
-}
-
-.forgot-password-box {
-  text-align: center;
-  font-size: 14px;
-  color: #64748b;
-  margin-top: 10px;
-}
-
-.forgot-password-link {
-  color: #e64a19;
-  font-weight: 600;
-  text-decoration: none;
-  cursor: pointer;
-}
-
-.forgot-password-link:hover {
-  text-decoration: underline;
-}
-
-.form-footer {
-  margin-top: 30px;
-  text-align: center;
-}
-
-.test-account {
-  font-size: 13px;
-  color: #94a3b8;
-  background: #f1f5f9;
-  padding: 8px 16px;
-  border-radius: 20px;
-  display: inline-block;
 }
 
 .copyright {
@@ -375,3 +337,4 @@ const goToForgotPassword = () => {
   }
 }
 </style>
+

@@ -6,13 +6,17 @@ import { useUserStore } from '@/stores/user'
 // Axios 实例配置、请求/响应拦截器
 const request = axios.create({
     baseURL: 'http://localhost:9095/api',
-    timeout: 5000
+    timeout: 30000 // 增加到30秒
 })
 
 request.interceptors.request.use(
     config => {
         const userStore = useUserStore()
-        if (userStore.token) {
+        // 对于注册、登录、重置密码等公开接口，不需要发送 token
+        const publicPaths = ['/auth/login', '/auth/register', '/auth/reset-password']
+        const isPublicPath = publicPaths.some(path => config.url?.includes(path))
+        
+        if (userStore.token && !isPublicPath) {
             config.headers['Authorization'] = `Bearer ${userStore.token}`
         }
         return config
@@ -56,6 +60,12 @@ request.interceptors.response.use(
             } else {
                 ElMessage.error(error.response.data?.message || error.message || 'Network Error')
             }
+        } else if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+            // 处理超时错误
+            ElMessage.error('请求超时，请检查网络连接或稍后重试')
+        } else if (error.request) {
+            // 请求已发出但没有收到响应
+            ElMessage.error('网络连接失败，请检查网络或服务器状态')
         } else {
             ElMessage.error(error.message || 'Network Error')
         }
