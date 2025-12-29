@@ -12,10 +12,32 @@
     </div>
     
     <div class="category-filter">
-      <el-tabs v-model="activeCategory" class="custom-tabs">
-        <el-tab-pane label="全部" name="" />
-        <el-tab-pane v-for="cat in categoryList" :key="cat.id" :label="getCategoryName(cat.name)" :name="String(cat.id)" />
-      </el-tabs>
+      <div class="filter-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <el-tabs v-model="activeCategory" class="custom-tabs" style="flex: 1;">
+          <el-tab-pane label="全部" name="" />
+          <el-tab-pane v-for="cat in categoryList" :key="cat.id" :label="getCategoryName(cat.name)" :name="String(cat.id)" />
+        </el-tabs>
+        <div class="search-box" style="width: 250px; margin-right: 10px;">
+          <el-autocomplete
+            v-model="searchText"
+            :fetch-suggestions="querySearchAsync"
+            placeholder="搜索菜品..."
+            :trigger-on-focus="false"
+            clearable
+            @select="handleSelect"
+            @clear="load"
+            @keyup.enter="load"
+          >
+            <template #default="{ item }">
+              <div class="value">{{ item.value }}</div>
+              <span class="link" style="font-size: 12px; color: #b4b4b4;">{{ item.price }}元</span>
+            </template>
+            <template #prefix>
+              <el-icon><Search /></el-icon>
+            </template>
+          </el-autocomplete>
+        </div>
+      </div>
     </div>
 
     <el-row :gutter="20">
@@ -113,6 +135,7 @@
 import { ref, reactive, onMounted, computed, watch } from 'vue'
 import { getDishPage, addDish, updateDish, delDish, getDishCategoryList } from '@/api/dish'
 import { ElMessage } from 'element-plus'
+import { Plus, Search } from '@element-plus/icons-vue' // Import Search icon
 import { useUserStore } from '@/stores/user'
 
 interface Dish {
@@ -127,6 +150,12 @@ interface Dish {
   description?: string
 }
 
+interface SuggestionItem {
+  value: string
+  price: number
+  id: number
+}
+
 const userStore = useUserStore()
 const uploadUrl = 'http://localhost:9095/api/common/upload'
 const uploadHeaders = computed(() => ({
@@ -135,6 +164,7 @@ const uploadHeaders = computed(() => ({
 const list = ref<Dish[]>([])
 const categoryList = ref<any[]>([]) 
 const activeCategory = ref('') // Current active tab
+const searchText = ref('') // Search text
 const dialogVisible = ref(false)
 const isEdit = ref(false)
 const formRef = ref()
@@ -232,12 +262,39 @@ const load = async () => {
     getDishPage({ 
       current: 1, 
       size: 100,
-      categoryId: activeCategory.value ? Number(activeCategory.value) : undefined
+      categoryId: activeCategory.value ? Number(activeCategory.value) : undefined,
+      name: searchText.value || undefined
     }),
     getDishCategoryList() 
   ])
   list.value = res.records
   categoryList.value = catRes
+}
+
+const querySearchAsync = (queryString: string, cb: (results: SuggestionItem[]) => void) => {
+  if (!queryString) {
+    cb([])
+    return
+  }
+  getDishPage({
+    current: 1,
+    size: 20, // Limit suggestions
+    name: queryString
+  }).then((res: any) => {
+    const results = res.records.map((item: Dish) => ({
+      value: item.name,
+      price: item.price,
+      id: item.id
+    }))
+    cb(results)
+  }).catch(() => {
+    cb([])
+  })
+}
+
+const handleSelect = (item: SuggestionItem) => {
+  searchText.value = item.value
+  load()
 }
 
 const openDialog = (row?: any) => {
@@ -301,16 +358,8 @@ const handleDel = async (id: number) => {
 
 // Watch activeCategory to reload list automatically
 watch(activeCategory, () => {
-    getDishPage({ 
-      current: 1, 
-      size: 100,
-      categoryId: activeCategory.value ? Number(activeCategory.value) : undefined
-    }).then((res: any) => {
-      list.value = res.records
-    })
+    load() 
 })
-
-
 
 onMounted(() => load())
 </script>

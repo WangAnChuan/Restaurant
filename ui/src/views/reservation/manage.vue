@@ -240,6 +240,16 @@ const formatDateTime = (datetime: string) => {
   return datetime.replace('T', ' ').substring(0, 16)
 }
 
+// 格式化日期为 yyyy-MM-dd 格式
+const formatDate = (date: Date | string): string => {
+  if (!date) return ''
+  const d = typeof date === 'string' ? new Date(date) : date
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
 const loadReservations = async () => {
   loading.value = true
   try {
@@ -249,7 +259,8 @@ const loadReservations = async () => {
     }
 
     if (filterDate.value) {
-      params.date = filterDate.value
+      // 将日期格式化为 yyyy-MM-dd 格式发送给后端
+      params.date = formatDate(filterDate.value)
     }
     if (filterStatus.value !== undefined) {
       params.status = filterStatus.value
