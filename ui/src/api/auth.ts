@@ -22,3 +22,11 @@ export const register = (data: any) => {
         data
     })
 }
+
+export const resetPassword = (data: any) => {
+    return request({
+        url: '/auth/reset-password',
+        method: 'post',
+        data
+    })
+}

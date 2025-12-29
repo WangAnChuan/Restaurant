@@ -11,9 +11,15 @@ const request = axios.create({
 
 request.interceptors.request.use(
     config => {
-        const userStore = useUserStore()
-        if (userStore.token) {
-            config.headers['Authorization'] = `Bearer ${userStore.token}`
+        // 公开接口不需要token
+        const publicPaths = ['/auth/login', '/auth/register', '/auth/reset-password']
+        const isPublicPath = config.url ? publicPaths.some(path => config.url!.includes(path)) : false
+        
+        if (!isPublicPath) {
+            const userStore = useUserStore()
+            if (userStore.token) {
+                config.headers['Authorization'] = `Bearer ${userStore.token}`
+            }
         }
         return config
     },

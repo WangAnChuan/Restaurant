@@ -39,17 +39,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        String token = request.getHeader(tokenHeader);
-        if (StringUtils.hasText(token) && token.startsWith("Bearer ")) {
-            token = token.substring(7);
-            if (jwtUtils.validateToken(token)) {
-                String username = jwtUtils.getUsernameFromToken(token);
-                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                        userDetails, null, userDetails.getAuthorities());
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+        try {
+            String token = request.getHeader(tokenHeader);
+            if (StringUtils.hasText(token) && token.startsWith("Bearer ")) {
+                token = token.substring(7);
+                if (jwtUtils.validateToken(token)) {
+                    String username = jwtUtils.getUsernameFromToken(token);
+                    UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                    UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                            userDetails, null, userDetails.getAuthorities());
+                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                }
             }
+        } catch (Exception e) {
+            // 如果JWT验证失败，忽略错误，继续执行（对于公开端点这是正常的）
+            // Log the error if needed: logger.error("JWT validation failed", e);
         }
         filterChain.doFilter(request, response);
     }

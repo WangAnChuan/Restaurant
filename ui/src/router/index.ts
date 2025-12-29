@@ -10,6 +10,10 @@ const router = createRouter({
             component: () => import('@/views/login/index.vue')
         },
         {
+            path: '/forgot-password',
+            component: () => import('@/views/forgot-password/index.vue')
+        },
+        {
             path: '/',
             component: MainLayout,
             redirect: '/login', // Redirect to login initially
@@ -63,7 +67,7 @@ router.beforeEach(async (to, _from, next) => {
     const userStore = useUserStore()
     const token = userStore.token
 
-    if (to.path === '/login') {
+    if (to.path === '/login' || to.path === '/forgot-password') {
         next()
     } else {
         if (!token) {

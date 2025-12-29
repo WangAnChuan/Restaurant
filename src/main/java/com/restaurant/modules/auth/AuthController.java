@@ -87,8 +87,36 @@ public class AuthController {
         return Result.success(userDetails);
     }
 
+    @PostMapping("/reset-password")
+    public Result<String> resetPassword(@RequestBody ResetPasswordDto resetPasswordDto) {
+        if (resetPasswordDto.getUsername() == null || resetPasswordDto.getPassword() == null) {
+            return Result.error("用户名和新密码不能为空");
+        }
+
+        // Check if user exists
+        com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<com.restaurant.modules.system.entity.SysUser> wrapper = new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<>();
+        wrapper.eq(com.restaurant.modules.system.entity.SysUser::getUsername, resetPasswordDto.getUsername());
+        com.restaurant.modules.system.entity.SysUser user = sysUserMapper.selectOne(wrapper);
+        
+        if (user == null) {
+            return Result.error("用户不存在");
+        }
+
+        // Update password
+        user.setPassword(passwordEncoder.encode(resetPasswordDto.getPassword()));
+        sysUserMapper.updateById(user);
+
+        return Result.success("密码修改成功");
+    }
+
     @Data
     public static class LoginDto {
+        private String username;
+        private String password;
+    }
+
+    @Data
+    public static class ResetPasswordDto {
         private String username;
         private String password;
     }
