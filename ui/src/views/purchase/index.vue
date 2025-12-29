@@ -142,9 +142,8 @@ const handleDel = async (id: number) => {
 }
 
 onMounted(() => {
-  const d = new Date()
-  d.setDate(d.getDate() + 1)
-  targetDate.value = d.toISOString().split('T')[0]
+  // 默认显示今日的采购清单
+  targetDate.value = new Date().toISOString().split('T')[0]
   load()
 })
 </script>
