@@ -10,6 +10,44 @@
       </div>
     </header>
 
+    <!-- 分类和搜索区域 -->
+    <div class="filter-section">
+      <div class="filter-container">
+        <!-- 分类标签页 -->
+        <div class="category-tabs">
+          <button 
+            class="tab-btn" 
+            :class="{ active: activeCategory === null }"
+            @click="selectCategory(null)"
+          >
+            全部
+          </button>
+          <button 
+            v-for="cat in categoryList" 
+            :key="cat.id"
+            class="tab-btn"
+            :class="{ active: activeCategory === cat.id }"
+            @click="selectCategory(cat.id)"
+          >
+            {{ getCategoryName(cat.name) }}
+          </button>
+        </div>
+        
+        <!-- 搜索框 -->
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input 
+            type="text" 
+            v-model="searchText" 
+            placeholder="搜索菜品..." 
+            @input="handleSearch"
+            class="search-input"
+          />
+          <button v-if="searchText" class="clear-btn" @click="clearSearch">✕</button>
+        </div>
+      </div>
+    </div>
+
     <main class="menu-container">
       <div v-if="loading" class="loading-state">
         <div class="loader"></div>
@@ -57,23 +95,49 @@
         </div>
       </div>
 
-      <el-empty v-else description="今日暂无供应" class="empty-state" />
+      <div v-else class="empty-state">
+        <div class="empty-icon">🍽️</div>
+        <p class="empty-text">{{ searchText ? '未找到匹配的菜品' : '今日暂无供应' }}</p>
+        <button v-if="searchText || activeCategory" class="reset-btn" @click="resetFilters">
+          查看全部菜品
+        </button>
+      </div>
     </main>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { getPublicDishList } from '@/api/dish'
+import { getPublicDishList, getDishCategoryList } from '@/api/dish'
+
+interface Category {
+  id: number
+  name: string
+}
 
 const list = ref<any[]>([])
+const categoryList = ref<Category[]>([])
 const loading = ref(true)
+const activeCategory = ref<number | null>(null)
+const searchText = ref('')
+let searchTimer: ReturnType<typeof setTimeout> | null = null
 
 const dishEmojis: Record<string, string> = {
   '鱼': '🐟', '肉': '🥩', '鸡': '🍗', '牛': '🥩', '虾': '🦐', '蟹': '🦀',
   '面': '🍜', '饭': '🍚', '汤': '🥣', '菜': '🥬', '蛋': '🥚', '豆': '🫘',
   '酒': '🍷', '茶': '🍵', '果': '🍎', '甜': '🍰', '辣': '🌶️'
 }
+
+// 分类名称映射
+const categoryNameMap: Record<string, string> = {
+  'Hot Dishes': '热菜',
+  'Cold Dishes': '凉菜',
+  'Soup': '汤品',
+  'Beverages': '饮料',
+  'Main Course': '主食'
+}
+
+const getCategoryName = (name: string) => categoryNameMap[name] || name
 
 // Pastel colors for emoji backgrounds
 const bgColors = [
@@ -108,17 +172,62 @@ const getDishStyle = (dish: any) => {
   }
 }
 
+const loadCategories = async () => {
+  try {
+    const res: any = await getDishCategoryList()
+    categoryList.value = res
+  } catch (error) {
+    console.error('加载分类失败:', error)
+  }
+}
+
 const load = async () => {
   try {
     loading.value = true
-    const res: any = await getPublicDishList()
+    const params: { categoryId?: number; name?: string } = {}
+    if (activeCategory.value) {
+      params.categoryId = activeCategory.value
+    }
+    if (searchText.value.trim()) {
+      params.name = searchText.value.trim()
+    }
+    const res: any = await getPublicDishList(params)
     list.value = res
   } finally {
     loading.value = false
   }
 }
 
-onMounted(() => load())
+const selectCategory = (categoryId: number | null) => {
+  activeCategory.value = categoryId
+  load()
+}
+
+const handleSearch = () => {
+  // 防抖处理
+  if (searchTimer) {
+    clearTimeout(searchTimer)
+  }
+  searchTimer = setTimeout(() => {
+    load()
+  }, 300)
+}
+
+const clearSearch = () => {
+  searchText.value = ''
+  load()
+}
+
+const resetFilters = () => {
+  activeCategory.value = null
+  searchText.value = ''
+  load()
+}
+
+onMounted(() => {
+  loadCategories()
+  load()
+})
 </script>
 
 <style scoped>
@@ -178,6 +287,145 @@ onMounted(() => load())
   font-weight: 400;
   margin-top: 10px;
   letter-spacing: 2px;
+}
+
+/* Filter Section */
+.filter-section {
+  max-width: 1280px;
+  margin: 0 auto 30px;
+  padding: 0 24px;
+  position: relative;
+  z-index: 1;
+}
+
+.filter-container {
+  background: white;
+  border-radius: 16px;
+  padding: 20px 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.category-tabs {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.tab-btn {
+  padding: 10px 20px;
+  border: 2px solid #e8e8e8;
+  border-radius: 25px;
+  background: white;
+  color: #666;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.tab-btn:hover {
+  border-color: #3498db;
+  color: #3498db;
+}
+
+.tab-btn.active {
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  border-color: #3498db;
+  color: white;
+  box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  background: #f5f7fa;
+  border-radius: 25px;
+  padding: 8px 16px;
+  min-width: 200px;
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.search-box:focus-within {
+  background: white;
+  border-color: #3498db;
+  box-shadow: 0 4px 15px rgba(52, 152, 219, 0.15);
+}
+
+.search-icon {
+  margin-right: 8px;
+  font-size: 1rem;
+}
+
+.search-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 0.95rem;
+  outline: none;
+  color: #333;
+}
+
+.search-input::placeholder {
+  color: #aaa;
+}
+
+.clear-btn {
+  background: #ddd;
+  border: none;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+  transition: all 0.2s;
+}
+
+.clear-btn:hover {
+  background: #ccc;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 80px 20px;
+}
+
+.empty-icon {
+  font-size: 80px;
+  margin-bottom: 20px;
+}
+
+.empty-text {
+  font-size: 1.2rem;
+  color: #95a5a6;
+  margin-bottom: 20px;
+}
+
+.reset-btn {
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  color: white;
+  border: none;
+  padding: 12px 28px;
+  border-radius: 25px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+}
+
+.reset-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
 }
 
 .menu-container {
@@ -387,5 +635,18 @@ onMounted(() => load())
   .title { font-size: 2.5rem; }
   .menu-grid { grid-template-columns: 1fr; }
   .dish-image { height: 200px; }
+  
+  .filter-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .category-tabs {
+    justify-content: center;
+  }
+  
+  .search-box {
+    width: 100%;
+  }
 }
 </style>

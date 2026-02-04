@@ -3,8 +3,8 @@ import request from './request'
 export const getDishPage = (params: any) => {
     return request({ url: '/dish/page', method: 'get', params })
 }
-export const getPublicDishList = () => {
-    return request({ url: '/dish/public/list', method: 'get' })
+export const getPublicDishList = (params?: { categoryId?: number; name?: string }) => {
+    return request({ url: '/dish/public/list', method: 'get', params })
 }
 export const addDish = (data: any) => {
     return request({ url: '/dish', method: 'post', data })

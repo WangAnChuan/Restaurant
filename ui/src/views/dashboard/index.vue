@@ -523,10 +523,22 @@
 
 <script setup lang="ts">
 import { ref, onMounted, nextTick, watch } from 'vue'
-import { getDashboardStats, getDashboardChart, getAccountPage } from '@/api/account'
+import { 
+  getAccountPage,
+  addAccount,
+  getCategoryList,
+  updateAccount,
+  delAccount
+} from '@/api/account'
+import { getPurchaseList } from '@/api/purchase'
+import { getPublicDishList } from '@/api/dish'
+import { useRouter } from 'vue-router'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import * as echarts from 'echarts'
 import type { EChartsOption } from 'echarts'
 import * as XLSX from 'xlsx'
+
+const router = useRouter()
 
 const stats = ref({ totalIncome: 0, totalExpense: 0, netIncome: 0 })
 const groupBy = ref('category')
@@ -729,8 +741,8 @@ const loadChartAnalysisWithDate = async (startDate: string, endDate: string) => 
       }
     })
     
-    renderPieChart(incomeChartRef.value!, incomeMap, 'incomeChart', '#059669')
-    renderPieChart(expenseChartRef.value!, expenseMap, 'expenseChart', '#dc2626')
+    renderPieChart(incomeChartRef.value!, incomeMap, 'incomeChart')
+    renderPieChart(expenseChartRef.value!, expenseMap, 'expenseChart')
   } catch (error: any) {
     console.error('加载图表分析失败:', error)
   }
@@ -742,15 +754,7 @@ const tabs = [
   { label: '按支付方式', val: 'payment' }
 ]
 
-const loadStats = async () => {
-  const res: any = await getDashboardStats()
-  stats.value = res
-}
 
-const loadChart = async () => {
-  const res: any = await getDashboardChart({ groupBy: groupBy.value })
-  chartData.value = Object.keys(res).map(key => ({ name: key, value: res[key] }))
-}
 
 const switchTab = (val: string) => {
   groupBy.value = val
@@ -1170,13 +1174,7 @@ watch(() => stats.value, () => {
 }, { deep: true, immediate: true })
 
 // Dialog Logic
-import { addAccount, getCategoryList, getAccountPage, updateAccount, delAccount } from '@/api/account'
-import { getPublicDishList } from '@/api/dish'
-import { getPurchaseList } from '@/api/purchase'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { useRouter } from 'vue-router'
 
-const router = useRouter()
 
 const dialogVisible = ref(false)
 const submitting = ref(false)
@@ -1573,9 +1571,9 @@ const loadChartAnalysis = async () => {
     })
     
     // 绘制收入饼图
-    renderPieChart(incomeChartRef.value!, incomeMap, 'incomeChart', '#059669')
+    renderPieChart(incomeChartRef.value!, incomeMap, 'incomeChart')
     // 绘制支出饼图
-    renderPieChart(expenseChartRef.value!, expenseMap, 'expenseChart', '#dc2626')
+    renderPieChart(expenseChartRef.value!, expenseMap, 'expenseChart')
   } catch (error: any) {
     ElMessage.error(error.message || '加载图表数据失败')
   }
@@ -1584,8 +1582,7 @@ const loadChartAnalysis = async () => {
 const renderPieChart = (
   container: HTMLElement, 
   dataMap: Map<string, number>, 
-  chartType: string,
-  mainColor: string
+  chartType: string
 ) => {
   // 销毁旧实例
   if (chartType === 'incomeChart' && incomeChartInstance) {

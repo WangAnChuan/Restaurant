@@ -17,12 +17,21 @@ public class DishController {
     @Autowired
     private DishServiceImpl dishService;
 
-    // Public API for Visitors
+    // Public API for Visitors (支持分类筛选和搜索)
     @GetMapping("/public/list")
-    public Result<List<Dish>> publicList() {
-        return Result.success(dishService.list(new LambdaQueryWrapper<Dish>()
-                .eq(Dish::getStatus, 1)
-                .orderByDesc(Dish::getId)));
+    public Result<List<Dish>> publicList(
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) String name) {
+        LambdaQueryWrapper<Dish> query = new LambdaQueryWrapper<>();
+        query.eq(Dish::getStatus, 1);
+        if (categoryId != null) {
+            query.eq(Dish::getCategoryId, categoryId);
+        }
+        if (name != null && !name.trim().isEmpty()) {
+            query.like(Dish::getName, name.trim());
+        }
+        query.orderByDesc(Dish::getId);
+        return Result.success(dishService.list(query));
     }
 
     @GetMapping("/page")
